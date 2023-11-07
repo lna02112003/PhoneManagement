@@ -1,0 +1,42 @@
+body{
+	margin: 0;
+	padding: 0;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 18px;
+}
+
+.body{
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-wrap: wrap;
+}
+.logo{
+	color: #ffffff;
+	width: 100%;
+}
+.logo_user{
+	width: 50px;
+	margin-top: 3%;
+}
+.background_left{
+	background-color: #0598ff;
+	width: 40%;
+}
+.background_right{
+	width: 59%;
+	padding-left: 1em;
+}
+.header-right{
+	text-align: center;
+}
+.header-right p{
+	color: #0598ff;
+}
+.img{
+	margin-top: 35%;
+}
+.card{
+	margin-top: 5%;
+	margin-bottom: 5%;
+}
