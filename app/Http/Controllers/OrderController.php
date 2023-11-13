@@ -10,15 +10,12 @@ use Illuminate\Support\Facades\DB;
 class OrderController extends Controller
 {
     function index(){
-        $order = DB::select('SELECT order.*,user.name
-                                FROM table_order
-                                JOIN users on users.id = table_order.user_id');
-        return view('admin.order',['order'=>$order]);                        
-    }
-    public function create()
-    {
-        $categories = Category::all(); // Lấy danh sách các danh mục
-        return view('admin.order_create', compact('categories'));
+        $orders = DB::table('order')
+            ->join('customer', 'customer.customer_id', '=', 'order.customer_id')
+            ->select('order.*', 'customer.*')
+            ->get();
+
+        return view('admin.order', ['orders' => $orders]);                     
     }
 
     public function store(Request $request)

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Category;
 use App\Models\Customer;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -12,7 +13,10 @@ use Illuminate\Support\Facades\Hash;
 class LoginController extends Controller
 {
     public function index(){
-        return view("login");
+        $categories = DB::select('SELECT category.*
+                                FROM category
+                                WHERE row_delete = 0');
+        return view("login",["categories"=>$categories]);
     }
     public function login(Request $request)
     {

@@ -51,40 +51,79 @@ class CartController extends Controller
         ];
         $cart[$productId] = $cartItem;
         $this->setCartInCookies($cart);
-
         return redirect()->route('customer.cart');
     }
-    public function cartData(Request $request){
+    public function cartData(Request $request) {
         $customer = Auth::guard('customer')->user();
-        $price = $this->getProductPrice($request->color_id, $request->version_id);
-        $color_name = DB::table('attribute_value')
-            ->select('attribute_value_name')
-            ->where('attribute_value_id', $request->color_id)
+    
+        $existingOrder = Order::where('customer_id', $customer->customer_id)
+            ->where('status', 'Đang chờ thanh toán')
             ->first();
+        $order_id = null;
 
-        $version_name = DB::table('attribute_value')
-            ->select('attribute_value_name')
-            ->where('attribute_value_id', $request->version_id)
-            ->first();
-        $cartItem = [
-            'productId' => $request->product_id,
-            'color' => $color_name->attribute_value_name,
-            'color_id' =>$request->color_id,
-            'version_id' => $request->version_id,
-            'version' => $version_name->attribute_value_name,
-            'quantity' => $request->hidden_quantity,
-            'cartTotal' => $request->cart_total,
-            'customer' =>$customer,
-            'price' =>$price,
-        ];
-        Cookie::queue('cartOrder', json_encode($cartItem), 30); 
-        if (Cookie::has('cart')) {
-            Cookie::queue(Cookie::forget('cart'));
+        if ($existingOrder) {
+            $order = $existingOrder;
+            $order_id = $order->order_id;
+            $orderDetail = DB::table('order_detail as od')
+            ->select('od.description', 'od.unit_price', 'od.quantity', 'p.product_name', 'pd.URL as image', 'o.order_total')
+            ->join('product as p', 'p.product_id', '=', 'od.product_id')
+            ->join('product_data as pd', 'pd.product_id', '=', 'p.product_id')
+            ->join('order as o', 'o.order_id', '=', 'od.order_id')
+            ->where('od.order_id', $order_id)
+            ->get();
+        } else {
+            $cartTotal = $request->input('cart_total.0');
+            if ($cartTotal > 0) {
+                $order = Order::create([
+                    'customer_id' => $customer->customer_id,
+                    'status' => 'Đang chờ thanh toán',
+                    'order_total' => $cartTotal,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                    'row_delete' => 0,
+                ]);
+                $order_id = $order->order_id; // Gán giá trị $order_id nếu tạo đơn hàng mới
+            }
+            $index = 0;
+            $product_ids = $request->input('product_id');
+            $quantities = $request->input('hidden_quantity');
+            $color_ids = $request->input('color_id');
+            $version_ids = $request->input('version_id');
+            $prices = $request->input('price');
+            if (isset($product_ids) && isset($quantities) && isset($color_ids) && isset($version_ids)) {
+                for ($index = 0; $index < count($product_ids); $index++) {
+                    $product_id = $product_ids[$index];
+                    $quantity = $quantities[$index];
+                    $color_id = $color_ids[$index];
+                    $version_id = $version_ids[$index];
+                    $price = $prices[$index];
+                    
+                    $color_name = DB::table('attribute_value')
+                        ->where('attribute_value_id', $color_id)
+                        ->value('attribute_value_name');
+                    $version_name = DB::table('attribute_value')
+                        ->where('attribute_value_id', $version_id)
+                        ->value('attribute_value_name');
+                    $description = $color_name . ', ' . $version_name;
+                    $order_detail = OrderDetail::create([
+                        'order_id' => $order_id,
+                        'product_id' => $product_id,
+                        'quantity' => $quantity,
+                        'unit_price' => $price,
+                        'description' => $description,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                        'row_delete' => 0,
+                    ]);
+                    $order_detail->save();
+                }
+            }
         }
-        dd($cartItem);
         $categories = DB::select('SELECT category.* FROM category');
-        return response()->view('customer.order', ['categories' => $categories, 'cart' => $cartItem]);
+        Cookie::queue(Cookie::forget('cart'));
+        return response()->view('customer.order', ['categories' => $categories, 'order' => $order ?? null, 'orderDetail' => $orderDetail ?? null, 'customer' => $customer]);
     }
+    
 
     public function delete($id)
     {

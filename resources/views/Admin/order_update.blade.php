@@ -43,7 +43,7 @@
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="btn btn-danger">Logout →</button>
-                </form>
+                </form>>
             </div>
         </header>
 
@@ -51,32 +51,19 @@
         <div class="page group">
             <div class="section">
                 <div class="col span_2">
-                    <h1>Edit Product</h1>
-                    <form method="POST" action="{{ route('product.update', ['id' => $product->product_id]) }}" enctype="multipart/form-data">
+                    <h1>Edit Order</h1>
+                    <form method="POST" action="{{ route('order.update', ['id' => $order->order_id]) }}">
                         @csrf
                         @method('PUT')
                         <div class="form-group">
-                            <label for="category_id">Category Name:</label>
-                            <select name="category_id" id="category_id" class="form-control">
-                                @foreach ($categories as $category)
-                                    <option value="{{ $category->category_id }}" {{ $category->category_id == $product->category_id ? 'selected' : '' }}>{{ $category->category_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="product_name">Product Name:</label>
-                            <input type="text" name="product_name" id="product_name" class="form-control" value="{{ $product->product_name }}">
-                        </div>
-                        <img src="{{ asset('storage/' . $product->image) }}" width="200px">
-                        <div class="form-group">
-                            <label for="image">Image:</label>
-                            <input type="file" name="image" id="image" class="form-control">
+                            <label for="order_toatl">Order Total:</label>
+                            <input type="text" name="category_name" id="category_name" class="form-control" value="{{ $category->category_name }}">
                         </div>
                         <div class="form-group">
                             <label for="description">Description:</label>
-                            <textarea name="description" id="description" class="form-control">{{ $product->description }}</textarea>
+                            <textarea name="description" id="description" class="form-control">{{ $category->description }}</textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary">Update Product</button>
+                        <button type="submit" class="btn btn-primary">Update Category</button>
                     </form>
                 </div>
             </div>

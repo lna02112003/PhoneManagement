@@ -41,7 +41,10 @@
                     <span class="name">NAHINN</span> <br />
                 </div>
                 <!-- actions -->
-                <a href="{{route('logout')}}"><span class="logout">Log out</span></a>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="btn btn-danger">Logout →</button>
+                </form>
             </div>
         </header>
 

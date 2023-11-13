@@ -69,21 +69,25 @@
 
                     @if (!empty($cart) && is_array($cart) && count($cart) > 0)
                         @php
-                        $product_id=[];
-                        $totalPrice = 0;
-                        $cartQuantity = 0;
+                            $product_id = [];
+                            $color_id = [];
+                            $version_id = [];
+                            $hidden_quantity = [];
+                            $cart_total = [];
+                            $price = [];
+                            $totalPrice = 0; // Add this line
+                            $cartQuantity = 0;
                         @endphp
                         @foreach($cart as $productId => $cartItem)
                             @php
-                                $productIds[] = $productId; // Thêm product_id vào mảng
-                            @endphp
+                                $product_id[] = $productId;
+                                $color_id[] = $cart[$productId]['color_id'];
+                                $version_id[] = $cart[$productId]['version_id'];
+                                @endphp
                             @php
                             $cartQuantity += $cartItem['quantity'];
                             $product = DB::table('product')
-                                ->select('product.product_id', 'product.product_name', 'attribute_value.price', 'product_data.URL as image')
-                                ->join('product_attribute', 'product.product_id', '=', 'product_attribute.product_id')
-                                ->join('attribute', 'product_attribute.attribute_id', '=', 'attribute.attribute_id')
-                                ->join('attribute_value', 'attribute.attribute_id', '=', 'attribute_value.attribute_id')
+                                ->select('product.product_id', 'product.product_name', 'product_data.URL as image')
                                 ->join('product_data', 'product.product_id', '=', 'product_data.product_id')
                                 ->where('product.product_id', $productId)
                                 ->where('product_data.Loai_URL', 'img')
@@ -92,14 +96,11 @@
 
                             @if ($product)
                                 @php
-                                    $productTotal = $product->price * $cartItem['quantity'];
+                                    $productTotal = $cartItem['price'] * $cartItem['quantity'];
                                     $totalPrice += $productTotal;
                                 @endphp  
 
                                 <div class="layout-inline row" data-product-id="{{ $productId }}">
-                                    @php
-                                        $product_id[] = $productId; 
-                                    @endphp
                                     <input type="hidden" name="product_id[] " value="{{$productId}}">
                                     <div class="col col-pro layout-inline">
                                         <img src="{{ asset('storage/' . $product->image) }}" alt="Product Image" />
@@ -107,19 +108,20 @@
                                     </div>
                                     <div class="col col-numeric align-center color" data-color-id="{{ $cart[$productId]['color_id'] }}">
                                         <p class="color">{{$cart[$productId]['color']}}</p>
-                                        <input type="hidden" name="color_id" value="{{ $cart[$productId]['color_id'] }}">
+                                        <input type="hidden" name="color_id[]" value="{{ $cart[$productId]['color_id'] }}">
                                     </div>
                                     <div class="col col-numeric align-center version" data-version-id="{{ $cart[$productId]['version_id'] }}">
                                         <p class="version">{{$cart[$productId]['version']}}</p>
-                                        <input type="hidden" name="version_id" value="{{ $cart[$productId]['version_id'] }}">
+                                        <input type="hidden" name="version_id[]" value="{{ $cart[$productId]['version_id'] }}">
                                     </div>
                                     <div class="col col-numeric align-center">
-                                        <p id="price-product">{{$product->price}}$</p>
+                                        <p id="price-product">{{$cart[$productId]['price']}}$</p>
+                                        <input type="hidden" name="price[]" class="price-hidden " id="price-hidden" value="{{$cart[$productId]['price']}}">
                                     </div>
                                     <div class="col col-qty layout-inline">
                                         <a href="#" class="qty qty-minus">-</a>
                                         <input type="numeric" value="{{ $cartItem['quantity'] }}" class="quantity"  id="quantity"/>
-                                        <input type="hidden" name="hidden_quantity" id="quantity-hidden" value="">
+                                        <input type="hidden" name="hidden_quantity[]" class="quantity-hidden " id="quantity-hidden" value="{{$cartItem['quantity']}}">
                                         <a href="#" class="qty qty-plus">+</a>
                                     </div>
 
@@ -137,8 +139,8 @@
                         <p>Your cart is empty.</p>
                     @endif
                     <div class="total-order">
-                        <p>Tổng đơn hàng: <span id="cart-total" class="cartTotal"></span>$</p>
-                        <input type="hidden" name="cart_total" id="cart-total-hidden" value="">
+                        <p>Tổng đơn hàng: <span id="cart-total" class="cartTotal"></span></p>
+                        <input type="hidden" name="cart_total[]" id="cart-total-hidden" value="">
                         <button type="submit" class="btn btn-danger btn-delete-product btn-submit">Buy</button>
                     </div>
                 </div>
@@ -165,7 +167,8 @@
         $('#quantity-hidden').val(quantityText);
         if (!isNaN(price) && !isNaN(quantity)) {
             var productTotal = price * quantity;
-            $productRow.find('.col-total p').text(productTotal.toFixed(2) + '$');
+            $productRow.find('.col-total p').text(productTotal.toFixed(3) + '$');
+            $productRow.find('#quantity-hidden').val(quantity);
             calculateCartTotal();
         } else {
             console.log("Giá hoặc số lượng không hợp lệ.");
@@ -176,9 +179,9 @@
         $('.col-total p').each(function() {
             cartTotal += parseFloat($(this).text().replace('$', ''));
         });
-        document.getElementById('cart-total-hidden').value = cartTotal.toFixed(2);
-        $('#cart-total-hidden').val(cartTotal.toFixed(2));
-        $('#cart-total').text(cartTotal.toFixed(2) + '$');
+        document.getElementById('cart-total-hidden').value = cartTotal.toFixed(3);
+        $('#cart-total-hidden').val(cartTotal.toFixed(3));
+        $('#cart-total').text(cartTotal.toFixed(3) + '$');
     }
 
     calculateCartTotal();
@@ -206,14 +209,13 @@
     $('.quantity').on('input', function() {
         var quantity = $(this).val();
         $('#quantity-hidden').val(quantity);
+        var $productRow = $(this).closest('.layout-inline.row');
+        $productRow.find('#quantity_hidden').val(quantity);
     });
 
     $('.quantity').on('input', function() {
         var quantity = $(this).val();
         $('#quantity-hidden').val(quantity);
-
-        var hiddenQuantity = document.getElementById('quantity-hidden').value;
-        console.log(hiddenQuantity);
     });
 </script>
 

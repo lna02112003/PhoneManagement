@@ -17,6 +17,12 @@ a {
     text-decoration: none;
     color: #7cbbea;
 }
+.bottom{
+    display: flex;
+}
+.identity{
+    width: 90%;
+}
 a:hover,
 nav a.active,
 ul.nav2 a.active {

@@ -55,7 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/cart/{product_id}', [CartController::class, 'addToCart'])->name('customer.addtoCart');
         Route::get('/cart/delete/{id}', [CartController::class, 'delete'])->name('customer.delete');
         Route::get('/order',[Order_DetailController::class, 'index'])->name('customer.order');
-        Route::get('/payment/create', [PaymentController::class, 'createPayment'])->name('payment.create');
+        Route::get('/payment/create/{order_id}', [PaymentController::class, 'createPayment'])->name('payment.create');
         Route::get('/payment/return', [PaymentController::class, 'returnPayment'])->name('payment.return');
 
     });

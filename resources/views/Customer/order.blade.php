@@ -55,19 +55,14 @@
                 <div class="clientlogo"></div>
                 <div class="info">
                     <div class="avatar">
-                        <img src="{{ asset('storage/' . $cart['customer']['img']) }}">
+                        <img src="{{ asset('storage/' . $customer->img) }}">
                     </div>
                     <div class="data_info">
-                        <h2>{{ $cart['customer']['first_name'] }} {{ $cart['customer']['middle_name'] }} {{ $cart['customer']['last_name'] }}</h2>
-                        <p>{{ $cart['customer']['email'] }}</p>
-                        <p>{{ $cart['customer']['phone'] }}</p>
-                        <p>{{ $cart['customer']['address'] }}</p>
+                        <h2>{{ $customer->first_name}} {{ $customer->middle_name }} {{ $customer->last_name }}</h2>
+                        <p>{{ $customer->email }}</p>
+                        <p>{{ $customer->phone }}</p>
+                        <p>{{ $customer->address }}</p>
                     </div>
-                </div>
-
-                <div id="project">
-                    <h2>Project Description</h2>
-                    <p>Proin cursus, dui non tincidunt elementum, tortor ex feugiat enim, at elementum enim quam vel purus. Curabitur semper malesuada urna ut suscipit.</p>
                 </div>
             </div><!--End InvoiceTop-->
 
@@ -82,10 +77,8 @@
                                 <h2>Image</h2>
                             </td>
                             <td class="Hours">
-                                <h2>Color</h2>
+                                <h2>Color And Version</h2>
                             </td>
-                            <td class="Rate">
-                                <h2>Version</h2>
                             </td>
                             <td class="Hours">
                                 <h2>Price</h2>
@@ -97,67 +90,48 @@
                                 <h2>Sub-total</h2>
                             </td>
                         </tr>
-                        @if (!empty($cart) && is_array($cart) && count($cart) > 0)
-                            @foreach($cart as $cartItem)
-                                @php
-                                $productId = $cartItem['productId'];
-                                $product = DB::table('product as p')
-                                            ->select('p.product_name', 'pd.URL as image')
-                                            ->join('product_data as pd', 'pd.product_id', '=', 'p.product_id')
-                                            ->where('p.product_id', $productId)
-                                            ->first();
-                                @endphp
-                                @if ($product)
-                                    <tr class="service">
-                                        <td class="tableitem">
-                                            <p class="itemtext">{{ $product->product_name }}</p>
-                                        </td>
-                                        <td class="tableitem">
-                                            <p class="itemtext"><img src="{{ asset('storage/' . $product->image) }}" alt="Product Image" /></p>
-                                        </td>
-                                        <td class="tableitem">
-                                            <p class="itemtext"></p>
-                                        </td>
-                                        <td class="tableitem">
-                                            <p class="itemtext"></p>
-                                        </td>
-                                        <td class="tableitem">
-                                            <p class="itemtext"></p>
-                                        </td>
-                                        <td class="tableitem">
-                                            <p class="itemtext"></p>
-                                        </td>
-                                        <td class="tableitem">
-                                            <p class="itemtext"></p>
-                                        </td>
-                                    </tr>
-                                @endif
+                        @if (isset($orderDetail))
+                            @foreach($orderDetail as $product)
+                                <tr class="service">    
+                                    <td class="tableitem">
+                                        <p class="itemtext">{{ $product->product_name }}</p>
+                                    </td>
+                                    <td class="tableitem">
+                                        <p class="itemtext"><img src="{{ asset('storage/' . $product->image) }}" alt="Product Image" /></p>
+                                    </td>
+                                    <td class="tableitem">
+                                        <p class="itemtext">{{$product->description}}</p>
+                                    </td>
+                                    </td>
+                                    <td class="tableitem">
+                                        <p class="itemtext">{{$product->unit_price}}$</p>
+                                    </td>
+                                    <td class="tableitem">
+                                        <p class="itemtext">{{$product->quantity}}</p>
+                                    </td>
+                                    <td class="tableitem">
+                                        <p class="itemtext total">{{$product->unit_price * $product->quantity}}$</p>
+                                    </td>
+                                </tr>
                             @endforeach
-                        @else
-                            <p>Your order is empty.</p>
+                            <tr class="tabletitle">
+                                <td colspan="4"></td>
+                                <td class="Rate">
+                                    <h2>Total</h2>
+                                </td>
+                                <td class="payment">
+                                    <h2>{{ $order->order_total }}$</h2>
+                                </td>
+                            </tr>
                         @endif
-                        
-                        <tr class="tabletitle">
-                            <td></td>
-                            <td></td>
-                            <td class="Rate">
-                                <h2>Total</h2>
-                            </td>
-                            <td class="payment">
-                                <h2>$3,644.25</h2>
-                            </td>
-                        </tr>
-
                     </table>
-                </div><!--End Table-->
-
-                <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
-                    <input type="hidden" name="cmd" value="_s-xclick">
-                    <input type="hidden" name="hosted_button_id" value="QRZ7QTM9XRPJ6">
-                    <input type="image" src="http://michaeltruong.ca/images/paypal.png" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-                </form>
-
-
+                </div>
+                <div>   
+                    <form action="{{route('payment.create',['order_id' => $order->order_id])}}" method="get" class="form1">
+                        @csrf
+                        <button type="submit" class="btn-submit">Thanh toán bằng VNPAY</button>
+                    </form>
+                </div>
                 <div id="legalcopy">
                     <p class="legal"><strong>Thank you for your business!</strong>  Payment is expected within 31 days; please process this invoice within that time. There will be a 5% interest charge per month on late invoices.
                     </p>
